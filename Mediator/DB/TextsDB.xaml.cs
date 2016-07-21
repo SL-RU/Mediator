@@ -13,21 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Mediator.VDiaEditor.boxes
+namespace Mediator.DB
 {
     /// <summary>
-    /// Логика взаимодействия для VDiaBoxTest.xaml
+    /// Логика взаимодействия для TextsDB.xaml
     /// </summary>
-    public partial class VDiaBoxTest : UserControl
+    public partial class TextsDB : UserControl
     {
-        public VDiaBoxTest()
+        public TextsDB()
         {
             InitializeComponent();
-        }
-
-        public void setText(string s)
-        {
-            text.Text = s;
         }
     }
 }

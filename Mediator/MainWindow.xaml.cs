@@ -1,5 +1,4 @@
-﻿using Mediator.VDiaEditor.boxes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,16 +22,11 @@ namespace Mediator
     {
         public MainWindow()
         {
+            Core.Init();
             InitializeComponent();
 
-            string[] s = new string[] { "Dia", "log", "Me", "dia", "tor", "Zavod", "skaya" };
-
-            foreach(string o in s)
-            {
-                VDiaBoxTest dia = new VDiaBoxTest();
-                dia.setText(o);
-                zoomPan.AddVChild(dia);
-            }
+            
         }
+
     }
 }

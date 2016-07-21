@@ -1,12 +1,10 @@
 D:\prj\Mediator\Mediator\Mediator\bin\Debug\Mediator.exe.config
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator.csprojResolveAssemblyReference.cache
-D:\prj\Mediator\Mediator\Mediator\obj\Debug\els\ZoomPanel.g.cs
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\MainWindow.g.cs
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\App.g.cs
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\GeneratedInternalTypeHelper.g.cs
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator_MarkupCompile.cache
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator_MarkupCompile.lref
-D:\prj\Mediator\Mediator\Mediator\obj\Debug\els\ZoomPanel.baml
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator.exe
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator.pdb
 D:\prj\Mediator\Mediator\Mediator\bin\Debug\Mediator.exe
@@ -15,7 +13,7 @@ D:\prj\Mediator\Mediator\Mediator\obj\Debug\MainWindow.baml
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator.g.resources
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator.Properties.Resources.resources
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\Mediator.csproj.GenerateResource.Cache
-D:\prj\Mediator\Mediator\Mediator\obj\Debug\els\ZoomPanelItem.g.cs
-D:\prj\Mediator\Mediator\Mediator\obj\Debug\els\ZoomPanelItem.baml
-D:\prj\Mediator\Mediator\Mediator\obj\Debug\VDiaEditor\boxes\VDiaBoxTest.g.cs
-D:\prj\Mediator\Mediator\Mediator\obj\Debug\VDiaEditor\boxes\VDiaBoxTest.baml
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\protobuf-net.dll
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\DB\TextsDB.g.cs
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\DB\TextsDB.baml
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\App.baml

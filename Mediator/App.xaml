@@ -4,6 +4,8 @@
              xmlns:local="clr-namespace:Mediator"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+         <SolidColorBrush x:Key="TextsDbTabColor" Color="LightGreen"/>
+        <SolidColorBrush x:Key="ProjectsDbTabColor" Color="LightBlue"/>
+        <SolidColorBrush x:Key="CharactersDbTabColor" Color="LightCoral"/>
     </Application.Resources>
 </Application>

@@ -3,11 +3,40 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:db="clr-namespace:Mediator.DB"
         xmlns:local="clr-namespace:Mediator"
-        xmlns:els="clr-namespace:Mediator.els"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="356.674" Width="634.004" Background="White">
     <Grid>
-        <els:ZoomPanel x:Name="zoomPan"></els:ZoomPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="250"/>
+            </Grid.ColumnDefinitions>
+            <TabControl x:Name="DbViewersTabs" TabStripPlacement="Bottom">
+                <TabItem Header="Projects" Background="{DynamicResource ProjectsDbTabColor}" BorderBrush="{DynamicResource ProjectsDbTabColor}">
+                    <Grid Background="#FFE5E5E5"/>
+                </TabItem>
+                <TabItem Header="Characters" Background="{DynamicResource CharactersDbTabColor}" BorderBrush="{DynamicResource CharactersDbTabColor}">
+                </TabItem>
+                <TabItem Header="Text" Background="{DynamicResource TextsDbTabColor}" BorderBrush="{DynamicResource TextsDbTabColor}">
+                    <db:TextsDB/>
+                </TabItem>
+            </TabControl>
+            <GridSplitter HorizontalAlignment="Left" Width="5" Grid.Column="1"/>
+            <Grid Margin="0" Grid.Column="2"/>
+            <GridSplitter HorizontalAlignment="Stretch" Width="5" Grid.Column="3"/>
+            <TabControl Grid.Column="4" TabStripPlacement="Bottom">
+                <TabItem Header="Project" Background="{DynamicResource ProjectsDbTabColor}" BorderBrush="{DynamicResource ProjectsDbTabColor}">
+                    <Grid Background="#FFE5E5E5"/>
+                </TabItem>
+                <TabItem Header="Character" BorderBrush="{DynamicResource CharactersDbTabColor}" Background="{DynamicResource CharactersDbTabColor}">
+                    <Grid Background="#FFE5E5E5"/>
+                </TabItem>
+            </TabControl>
+        </Grid>
     </Grid>
 </Window>
