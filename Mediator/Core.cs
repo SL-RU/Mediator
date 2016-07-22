@@ -7,10 +7,11 @@ using ProtoBuf;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.IO;
+using System.Windows.Forms;
 
 namespace Mediator
 {
-    public enum Db
+    public enum DbType
     {
         Scripts,
         Texts,
@@ -19,25 +20,104 @@ namespace Mediator
         Quest
     }
 
+
+    public interface IData
+    {
+        string Id { get; }
+
+        //void Update(IData data);
+    }
+
+    public interface IDbInterface
+    {
+        /// <summary>
+        /// Get element's data
+        /// </summary>
+        /// <param name="dbName">DB's name</param>
+        /// <param name="id">ID</param>
+        /// <returns>Serialized data</returns>
+        byte[] Get(string dbName, string id);
+
+        /// <summary>
+        /// Set element's data
+        /// </summary>
+        /// <param name="dbName">DB's name</param>
+        /// <param name="id">ID</param>
+        /// <param name="data">Serialized data</param>
+        void Set(string dbName, string id, byte[] data);
+    }
+
     public class Core
     {
-        public static void Init()
-        {
+        public IDbInterface Db { get; private set; }
 
+        public Core(IDbInterface db)
+        {
+            Db = db;
+        }
+    }
+
+    public class Db<T> where T : IData
+    {
+        public Core Core;
+        private Dictionary<string, T> Cache;
+        public string DbName { get; protected set; }
+        public DbType DbType { get; protected set; }
+        
+        //TODO: Add null check in Db<T>
+
+        public Db(Core core, string dbName, DbType type)
+        {
+            Core = core;
+            DbName = dbName;
+            DbType = type;
+
+            Cache = new Dictionary<string, T>();
         }
 
-        public static string ReceiveData(Db db, string id)
+        public byte[] GetSerialized(string id)
         {
-            return "";
+            return Core.Db.Get(DbName, id);
+        }
+        public T GetDeserialized(string id)
+        {
+            using (var m = new MemoryStream(GetSerialized(id))) 
+            {
+                return (T)Serializer.Deserialize(typeof(T), m);
+            }
+        }
+
+        public byte[] Serialize(T data)
+        {
+            using (var m = new MemoryStream())
+            {
+                Serializer.Serialize(m, data);
+                return m.ToArray();
+            } 
+        }
+        public byte[] Serialize(string id)
+        {
+            return Serialize(Get(id));
+        }
+
+        public T Get(string id)
+        {
+            return default(T);
+        }
+
+        public void Set(T dat)
+        {
+            //dat.Update(null);
+            Core.Db.Set(DbName, dat.Id, Serialize(dat));
         }
 
     }
 
     [ProtoContract]
-    public class ScriptData
+    public class ScriptData : IData
     {
         [ProtoMember(1)]
-        public string ID { get; set; }
+        public string Id { get; protected set; }
 
         [ProtoMember(2)]
         public string Type { get; set; }
@@ -63,18 +143,23 @@ namespace Mediator
         /// <returns>New script data</returns>
         public static ScriptData Create()
         {
-            ScriptData r = new ScriptData() { ID = Guid.NewGuid().ToString(), Data = "hello", Type = "test" };
+            ScriptData r = new ScriptData() { Id = Guid.NewGuid().ToString(), Data = "hello", Type = "test" };
             using (var file = File.Create("script.bin"))
             {
                 Serializer.Serialize(file, r);
             }
             return r;
         }
-#endregion
+
+        public void Update(IData data)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 
     [ProtoContract]
-    public class TextData : INotifyPropertyChanged
+    public class TextData : INotifyPropertyChanged, IData
     {
         [ProtoMember(1)]
         public string Id { get; protected set; }
@@ -101,6 +186,7 @@ namespace Mediator
             using (var file = File.Open("text.bin", FileMode.Open))//вместо етого вызываем чёт типа Core.RequestData(DB.Texts, id);
             {
                 return (TextData)Serializer.Deserialize(typeof(TextData), file);
+                
             }
         }
 
@@ -121,7 +207,7 @@ namespace Mediator
     }
 
     [ProtoContract]
-    public class ProjectData : INotifyPropertyChanged
+    public class DialogData : INotifyPropertyChanged, IData
     {
         #region Members
 
@@ -195,12 +281,12 @@ namespace Mediator
         /// </summary>
         /// <param name="id">requested id</param>
         /// <returns>Requested text data or null</returns>
-        public static ProjectData GetById(string id)
+        public static DialogData GetById(string id)
         {
             using (var file = File.Open("project.bin", FileMode.Open))
                 //вместо етого вызываем чёт типа Core.RequestData(DB.Texts, id);
             {
-                return (ProjectData) Serializer.Deserialize(typeof (ProjectData), file);
+                return (DialogData) Serializer.Deserialize(typeof (DialogData), file);
             }
         }
 
@@ -209,12 +295,12 @@ namespace Mediator
         /// </summary>
         /// <param name="id">requested id</param>
         /// <returns>Requested text data or null</returns>
-        public static ProjectData GetPrewiewById(string id)
+        public static DialogData GetPrewiewById(string id)
         {
             using (var file = File.Open("project.bin", FileMode.Open))
                 //вместо етого вызываем чёт типа Core.RequestData(DB.Texts, id);
             {
-                return (ProjectData) Serializer.Deserialize(typeof (ProjectData), file);
+                return (DialogData) Serializer.Deserialize(typeof (DialogData), file);
             }
         }
 
@@ -222,9 +308,9 @@ namespace Mediator
         /// Send request to the server with request to create new text and to send it's data.
         /// </summary>
         /// <returns>New text data</returns>
-        public static ProjectData Create()
+        public static DialogData Create()
         {
-            ProjectData r = new ProjectData()
+            DialogData r = new DialogData()
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = "hello",
@@ -243,7 +329,7 @@ namespace Mediator
 
 
     [ProtoContract]
-    public class CharactersData : INotifyPropertyChanged
+    public class CharactersData : INotifyPropertyChanged, IData
     {
         #region Members
 

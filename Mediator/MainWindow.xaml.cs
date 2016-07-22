@@ -22,7 +22,7 @@ namespace Mediator
     {
         public MainWindow()
         {
-            Core.Init();
+            //Core.Init();
             InitializeComponent();
 
             
