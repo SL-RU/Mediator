@@ -10,17 +10,16 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Mediator.SQLiteDB
+namespace Mediator
 {
     /// <summary>
-    /// Логика взаимодействия для SQLiteDbConnecter.xaml
+    /// Логика взаимодействия для StartWindow.xaml
     /// </summary>
-    public partial class SQLiteDbConnecter : UserControl
+    public partial class StartWindow : Window
     {
-        public SQLiteDbConnecter()
+        public StartWindow()
         {
             InitializeComponent();
         }

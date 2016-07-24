@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,20 +14,22 @@ using System.Windows.Forms;
 
 namespace Mediator
 {
+    /// <summary>
+    /// Table type in the DB. every named constant is also a name of DB's 
+    /// </summary>
     public enum DbType
     {
         Scripts,
         Texts,
         Characters,
-        Projects,
+        Dialogs,
         Quest
     }
 
-
     public interface IDbInterface
     {
-        void Connect();
-        void Close();
+        Task Connect();
+        Task Close();
 
         /// <summary>
         /// Get element's data
@@ -35,7 +39,7 @@ namespace Mediator
         /// <param name="preview">Get only preview data</param>
         /// <param name="version">Get specific version of data</param>
         /// <returns>Serialized data</returns>
-        byte[] Get(string dbName, string id, bool preview = false, string version = null);
+        Task<byte[]> Get(string dbName, string id, bool preview = false, string version = null);
 
         /// <summary>
         /// Set element's data
@@ -43,7 +47,9 @@ namespace Mediator
         /// <param name="dbName">DB's name</param>
         /// <param name="id">ID</param>
         /// <param name="data">Serialized data</param>
-        void Set(string dbName, string id, byte[] data);
+        Task Set(string dbName, string id, byte[] data);
+
+        Task<string> GetNewId();
     }
 
     public class Core
@@ -51,32 +57,34 @@ namespace Mediator
         public IDbInterface Db { get; private set; }
 
         //public Dictionary<DbType, IData> 
-
-        public IDictionary<DbType, Db<IData>> Dbs { get; private set; }
         
+        private Dictionary<DbType, IDb<IData>> Dbs; 
 
         public Core(IDbInterface db)
         {
             
             Db = db;
 
-            Dbs = new Dictionary<DbType, Db<IData>>();
-            //TODO: create normal init
-            //foreach (var d in Enum.GetValues(typeof(DbType)))
-            //{
-            //    Dbs.Add((DbType)d, new Db<>());
-            //}
-            IReadOnlyCollection<Db<IData>> l = new List<Db<IData>>();
-            //l.Add(new Db<CharactersData>(this, "ff", DbType.Characters));
-            //TODO: implement db initing
+            Dbs = new Dictionary<DbType, IDb<IData>>();
 
+            //TODO: ???
+            Dbs.Add(DbType.Characters, new Db<CharacterData>(this, DbType.Characters));
+            Dbs.Add(DbType.Scripts,    new Db<ScriptData>(this, DbType.Scripts   ));
+            Dbs.Add(DbType.Dialogs,    new Db<DialogData>(this, DbType.Dialogs));
+            Dbs.Add(DbType.Quest,      new Db<CharacterData>(this, DbType.Quest     ));
+            Dbs.Add(DbType.Texts,      new Db<TextData>(this, DbType.Texts     ));
+        }
+
+        public IDb<IData> getDb(DbType type)
+        {
+            return (IDb<IData>)Dbs[type];
         }
     }
 
-    public interface IDbEditor<out T> where T: IData
+    public interface IDbEditor<T> where T: IData
     {
         T CurrentlyEditingData { get; }
-
+        void Edit(T edit);
         void CloseEdit();
     }
 
@@ -85,10 +93,19 @@ namespace Mediator
         void Clear();
     }
 
-    public class Db<T> where T : IData
+    public interface IDb<out T> where T : IData
+    {
+        string DbName { get; }
+        DbType DbType { get; }
+    }
+
+    public class Db<T> : IDb<T>
+        where T : Data, new()
     {
         public Core Core;
-        private Dictionary<string, T> Cache;
+        private Dictionary<string, T> CacheDict;
+        public ObservableCollection<T> Cache;
+
         public string DbName { get; protected set; }
         public DbType DbType { get; protected set; }
 
@@ -97,15 +114,38 @@ namespace Mediator
 
         //TODO: Add null check in Db<T>
 
-        public Db(Core core, string dbName, DbType type)
+        public Db(Core core, DbType type)
         {
             Core = core;
-            DbName = dbName;
+            DbName = type.ToString();
             DbType = type;
 
-            Cache = new Dictionary<string, T>();
+            CacheDict = new Dictionary<string, T>();
+            Cache = new ObservableCollection<T>();
+
         }
 
+        public T CacheGet(string id)
+        {
+            if (CacheDict.ContainsKey(id))
+                return CacheDict[id];
+            return null;
+        }
+
+        private void CacheAdd(T d)
+        {
+            CacheDict.Add(d.Id, d);
+            Cache.Add(d);
+        }
+
+        private void CacheRemove(string id)
+        {
+            if (CacheDict.ContainsKey(id))
+            {
+                var i = CacheDict[id];
+                Cache.Remove(i);
+            }
+        }
         #region Connect
         /// <summary>
         /// Connect visual editor to Db
@@ -127,14 +167,11 @@ namespace Mediator
         #endregion
 
         #region Serialization
-        public byte[] GetSerialized(string id)
-        {
-            return Core.Db.Get(DbName, id);
-        }
+        
 
-        public T GetDeserialized(string id)
+        public T Deserialize(byte[] s)
         {
-            using (var m = new MemoryStream(GetSerialized(id)))
+            using (var m = new MemoryStream(s))
             {
                 return (T)Serializer.Deserialize(typeof(T), m);
             }
@@ -149,9 +186,14 @@ namespace Mediator
             }
         }
 
-        public byte[] Serialize(string id)
+        public async Task<T> ReceiveData(string id, bool preview)
         {
-            return Serialize(Get(id));
+            var b = await Core.Db.Get(DbName, id, preview);
+            T d = default(T);
+            if (b != null)
+                d = Deserialize(b);
+            d.Id = id;
+            return d;
         }
         #endregion
 
@@ -162,18 +204,42 @@ namespace Mediator
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static T GetPreview(string id)
+        public async Task<T> GetPreview(string id)
         {
-            return default(T);
+            if (CacheDict.ContainsKey(id))
+                return CacheDict[id];
+
+            //if doesn't in cache
+            var r = await ReceiveData(id, true);
+            if (r != null)
+                CacheAdd(r);
+
+            return r;
         }
         /// <summary>
-        /// Get full data class by ID
+        /// Get full data class from cache or DB
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T Get(string id)
+        public async Task<T> Get(string id)
         {
-            return default(T);
+            if (CacheDict.ContainsKey(id))
+            {
+                if(CacheDict[id].IsFullDataRecieved) //if already full data already recieved
+                    return CacheDict[id];
+                else
+                {
+                    var r = await ReceiveData(id, false);
+                    Update(r);
+                    return r;
+                }
+            }
+            //if doesn't in cache
+            var re = await ReceiveData(id, false);
+            if (re != null)
+                CacheAdd(re);
+
+            return re;
         }
         #endregion
 
@@ -181,34 +247,38 @@ namespace Mediator
         /// Apply changes of data class to DB
         /// </summary>
         /// <param name="dat"></param>
-        public void Set(T dat)
+        public async Task Set(T dat)
         {
             //dat.Update(null);
-            Core.Db.Set(DbName, dat.Id, Serialize(dat));
+            await Core.Db.Set(DbName, dat.Id, Serialize(dat));
         }
 
-        public static T Create()
+        public async Task<T> Create()
         {
-            return default(T);
+            T t = new T();
+            t.Id = await Core.Db.GetNewId();
+            await Set(t);
+            t = await Get(t.Id);
+            return t;
         }
 
         /// <summary>
         /// Update cached Data's fields using values of different "data" object
         /// </summary>
         /// <param name="data">"data" object</param>
-        private void Update(T data)
+        public void Update(T data)
         {
             if(data.GetType() != typeof(T))
                 throw new Exception("Different types - couldn't update");
             if(data == null)
                 throw new NullReferenceException();
-            var d = Get(data.Id);
+            var d = CacheGet(data.Id);
             if (d == null) // It isn't required - only just for the KOSTILY case 
                 throw new NullReferenceException();
 
             if (data.Equals(d))
                 return;
-            foreach (PropertyInfo oPropertyInfo in d.GetType().GetProperties())
+            foreach (PropertyInfo oPropertyInfo in data.GetType().GetProperties())
             {
                 //Check the method is not static
                 if (!oPropertyInfo.GetGetMethod().IsStatic)

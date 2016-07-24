@@ -5,15 +5,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Mediator.DB"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="300" Loaded="UserControl_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBox x:Name="textBox" Height="23" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
-        <Button x:Name="button" Content="Button" VerticalAlignment="Top" Margin="0,23,0,0" Background="{DynamicResource TextsDbTabColor}"/>
-        <DataGrid x:Name="dataGrid" Margin="0" Grid.Row="1"/>
+        <Button x:Name="button" Content="Button" VerticalAlignment="Top" Margin="0,23,0,0" Background="{DynamicResource TextsDbTabColor}" Click="button_Click"/>
+        <DataGrid x:Name="dataGrid" Margin="0" Grid.Row="1" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Width="*" Header="Text" Binding="{Binding Text}" FontWeight="Bold" IsReadOnly="True" MinWidth="200"/>
+                <DataGridTextColumn Width="200" Header="ID" Binding="{Binding Id}" IsReadOnly="True"/>
+            </DataGrid.Columns>
+        </DataGrid>
 
     </Grid>
 </UserControl>

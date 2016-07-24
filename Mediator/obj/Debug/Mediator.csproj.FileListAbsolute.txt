@@ -17,3 +17,17 @@ D:\prj\Mediator\Mediator\Mediator\bin\Debug\protobuf-net.dll
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\DB\TextsDB.g.cs
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\DB\TextsDB.baml
 D:\prj\Mediator\Mediator\Mediator\obj\Debug\App.baml
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\EntityFramework.dll
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\EntityFramework.SqlServer.dll
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\System.Data.SQLite.dll
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\System.Data.SQLite.EF6.dll
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\System.Data.SQLite.Linq.dll
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\EntityFramework.xml
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\EntityFramework.SqlServer.xml
+D:\prj\Mediator\Mediator\Mediator\bin\Debug\System.Data.SQLite.xml
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\SQLiteDB\SqLiteDbConnector.g.cs
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\SQLiteDB\SqLiteDbConnector.baml
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\StartWindow.g.cs
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\StartWindow.baml
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\Editors\TextEditor.g.cs
+D:\prj\Mediator\Mediator\Mediator\obj\Debug\Editors\TextEditor.baml

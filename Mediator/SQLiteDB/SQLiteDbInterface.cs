@@ -28,14 +28,17 @@ namespace Mediator.SQLiteDB
             CPath = path;
         }
 
-        public void Connect()
+        public async Task Connect()
         {
+            if (connection != null)
+                return;
             if (!Directory.Exists(CPath))
                 throw new DirectoryNotFoundException("Couldn't open DB - path does'n exist");
-            if (File.Exists(Path.Combine(CPath, ProjectFileName)))
+            if (!File.Exists(Path.Combine(CPath, ProjectFileName)))
                 throw new DirectoryNotFoundException("Couldn't create DB - project doesn't exist");
 
-            factory = (SQLiteFactory)DbProviderFactories.GetFactory("System.Data.SQLite");
+            factory = (SQLiteFactory) DbProviderFactories.GetFactory("System.Data.SQLite");
+            connection = (SQLiteConnection) factory.CreateConnection();
             connection.ConnectionString = "Data Source = " + DbFileName;
             connection.Open();
         }
@@ -47,10 +50,10 @@ namespace Mediator.SQLiteDB
             if (File.Exists(Path.Combine(CPath, ProjectFileName)))
                 throw new DirectoryNotFoundException("Couldn't create DB - project already created");
 
-            using (var f = File.Open(Path.Combine(CPath, ProjectFileName), FileMode.CreateNew, FileAccess.ReadWrite))
-            {
-                File.WriteAllText(Path.Combine(CPath, ProjectFileName), CPath);
-            }
+            //using (var f = File.Open(Path.Combine(CPath, ProjectFileName), FileMode.CreateNew, FileAccess.ReadWrite))
+            //{
+            File.WriteAllText(Path.Combine(CPath, ProjectFileName), CPath);
+            //}
 
             SQLiteConnection.CreateFile(DbFileName);
 
@@ -60,35 +63,82 @@ namespace Mediator.SQLiteDB
             connection.ConnectionString = "Data Source = " + DbFileName;
             connection.Open();
 
-            using (SQLiteCommand command = new SQLiteCommand(connection))
+            var dbs = Enum.GetNames(typeof (DbType));
+            foreach (var db in dbs)
             {
-                var dbs = Enum.GetNames(typeof (DbType));
-                foreach (var db in dbs)
+                using (SQLiteCommand command = new SQLiteCommand(connection))
                 {
                     command.CommandText = @"CREATE TABLE [" + db + @"] (
-                        [id] integer PRIMARY KEY UNIQUE NOT NULL,
+                        [id] TEXT PRIMARY KEY UNIQUE NOT NULL,
                         [data] BLOB
                         );";
-                    command.CommandType = CommandType.Text;
+                    command.Prepare();
+                    //command.CommandType = CommandType.Text;
                     command.ExecuteNonQuery();
                 }
             }
 
         }
 
-        public void Close()
+        public async Task Close()
         {
             connection.Close();
         }
 
-        public byte[] Get(string dbName, string id, bool preview = false, string version = null)
+        public async Task<byte[]> Get(string dbName, string id, bool preview = false, string version = null)
         {
-
+            using (SQLiteCommand command = new SQLiteCommand(connection))
+            {
+                command.CommandText = @"SELECT data FROM " + dbName + " WHERE id='" + id + "';";
+                command.Prepare();
+                command.Parameters.AddWithValue("@db", dbName);
+                command.Parameters.AddWithValue("@id", id);
+                command.CommandType = CommandType.Text;
+                SQLiteDataReader reader = command.ExecuteReader();
+                byte[] b = null;
+                foreach (DbDataRecord r in reader)
+                {
+                    //string s = (string)r["data"];
+                    b = (byte[])r["data"];
+                    break;
+                }
+                return b;
+            }
         }
 
-        public void Set(string dbName, string id, byte[] data)
+        public async Task Set(string dbName, string id, byte[] data)
         {
+            var b = Convert.ToBase64String(data);
+            using (SQLiteCommand command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "SELECT count(*) FROM " + dbName + " WHERE id=@id";
+                command.Prepare();
+                command.Parameters.AddWithValue("@id", id);
+                int count = Convert.ToInt32(command.ExecuteScalar());
+                if (count == 0)
+                {
+                    command.CommandText = "INSERT INTO '" + dbName + "'('id','data') VALUES (@id, @data);";
+                    command.Prepare();
+                    command.Parameters.AddWithValue("@db", dbName);
+                    command.Parameters.AddWithValue("@id", id);
+                    command.Parameters.AddWithValue("@data", b);
+                    command.ExecuteNonQuery();
+                }
+                else
+                {
+                    command.CommandText = "UPDATE '" + dbName + "' SET data=@data WHERE id=@id;";
+                    command.Prepare();
+                    command.Parameters.AddWithValue("@db", dbName);
+                    command.Parameters.AddWithValue("@id", id);
+                    command.Parameters.AddWithValue("@data", data);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
 
+        public async Task<string> GetNewId()
+        {
+            return Guid.NewGuid().ToString();
         }
     }
 }

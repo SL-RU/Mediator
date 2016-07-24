@@ -2,9 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Mediator"
-             StartupUri="MainWindow.xaml">
+             StartupUri="StartWindow.xaml">
     <Application.Resources>
-         <SolidColorBrush x:Key="TextsDbTabColor" Color="LightGreen"/>
+        <SolidColorBrush x:Key="TextsDbTabColor" Color="LightGreen"/>
         <SolidColorBrush x:Key="ProjectsDbTabColor" Color="LightBlue"/>
         <SolidColorBrush x:Key="CharactersDbTabColor" Color="LightCoral"/>
     </Application.Resources>

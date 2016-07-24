@@ -20,12 +20,13 @@ namespace Mediator
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
-        {
-            //Core.Init();
-            InitializeComponent();
+        public Core Core;
 
-            
+        public MainWindow(Core core)
+        {
+            Core = core;
+            DataContext = this;
+            InitializeComponent();
         }
 
     }

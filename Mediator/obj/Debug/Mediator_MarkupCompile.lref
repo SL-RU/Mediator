@@ -2,4 +2,7 @@
 FD:\prj\Mediator\Mediator\Mediator\App.xaml;;
 FD:\prj\Mediator\Mediator\Mediator\DB\TextsDB.xaml;;
 FD:\prj\Mediator\Mediator\Mediator\MainWindow.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\SQLiteDB\SqLiteDbConnector.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\StartWindow.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\Editors\TextEditor.xaml;;
 

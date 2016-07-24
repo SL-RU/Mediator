@@ -13,31 +13,46 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Mediator.DB
+namespace Mediator.Editors
 {
     /// <summary>
-    /// Логика взаимодействия для TextsDB.xaml
+    /// Логика взаимодействия для TextEditor.xaml
     /// </summary>
-    public partial class TextsDB : UserControl, IDbViewer<TextData>
+    public partial class TextEditor : UserControl, IDbEditor<TextData>
     {
+        MainWindow mainWindow;
         Core Core;
         Db<TextData> db;
-        MainWindow mainWindow;
+        TextData txt;
 
-        public TextsDB()
+        public TextData CurrentlyEditingData => txt;
+
+        public TextEditor()
         {
             InitializeComponent();
+
         }
 
-        public void Clear()
+        public void Edit(TextData td)
+        {
+            txt = td;
+            grid.DataContext = td;
+        }
+
+        private async void save_Click(object sender, RoutedEventArgs e)
+        {
+            await db.Set(txt);
+        }
+
+        private async void revert_Click(object sender, RoutedEventArgs e)
+        {
+            var t = await db.ReceiveData(txt.Id, false);
+            db.Update(t);
+        }
+
+        public void CloseEdit()
         {
             
-        }
-
-        private async void button_Click(object sender, RoutedEventArgs e)
-        {
-            var d = await db.Create();
-            db.Editor.Edit(d);
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -45,9 +60,9 @@ namespace Mediator.DB
             mainWindow = (MainWindow)DataContext;
             Core = mainWindow.Core;
             db = (Db<TextData>)Core.getDb(DbType.Texts);
-            db.ConnectViewer(this);
+            db.ConnectEditor(this);
 
-            dataGrid.ItemsSource = db.Cache;
+            
         }
     }
 }

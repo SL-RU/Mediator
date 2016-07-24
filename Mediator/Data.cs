@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -9,30 +10,87 @@ using ProtoBuf;
 
 namespace Mediator
 {
+    [ProtoContract]
+    public class DataVersionInfo
+    {
+        [ProtoMember(1)]
+        public string Version = "";
+
+        [ProtoMember(2)]
+        public string LastEditBy = "";
+
+        [ProtoMember(3)]
+        public string LastEditTime = "";
+    }
+
     public interface IData
     {
-        string Id { get; }
+        //Weeell, let client be creating new data.
+        DataVersionInfo Version { get; }
+        string Id { get; set; }
+        bool IsFullDataRecieved { get; }
     }
 
     [ProtoContract]
-    public class ScriptData : IData
+    public class Data : IData
     {
+        private byte[] _serializedVersion;
+        private DataVersionInfo _dataVersion;
         [ProtoMember(1)]
-        public string Id { get; protected set; }
+        public byte[] SerializedVersion
+        {
+            get { return _serializedVersion; }
+            set
+            {
+                _serializedVersion = value;
+                if (_serializedVersion != null)
+                {
+                    using (var m = new MemoryStream(_serializedVersion))
+                    {
+                        _dataVersion = (DataVersionInfo)Serializer.Deserialize(typeof(DataVersionInfo), m);
+                    }
+                }
+                else
+                {
+                    _dataVersion = null;
+                }
+            }
+        }
+        public DataVersionInfo Version
+        {
+            get
+            {
+                if (_dataVersion != null)
+                    return _dataVersion;
+                if (SerializedVersion != null)
+                {
+                    using (var m = new MemoryStream(SerializedVersion))
+                    {
+                        _dataVersion = (DataVersionInfo)Serializer.Deserialize(typeof(DataVersionInfo), m);
+                    }
+                    return _dataVersion;
+                }
+                return null;
+            }
+        }
 
+        public string Id { get; set; }
+        public bool IsFullDataRecieved => true;
+    }
+
+    [ProtoContract]
+    public class ScriptData : Data
+    {
         [ProtoMember(2)]
         public string Type { get; set; }
 
         [ProtoMember(3)]
-        public string Data { get; set; }
+        public byte[] Data { get; set; }
     }
 
     [ProtoContract]
-    public class TextData : INotifyPropertyChanged, IData
+    public class TextData : Data, INotifyPropertyChanged
     {
-        [ProtoMember(1)]
-        public string Id { get; protected set; }
-
         private string _text;
         [ProtoMember(2)]
         public string Text
@@ -49,13 +107,9 @@ namespace Mediator
     }
 
     [ProtoContract]
-    public class DialogData : INotifyPropertyChanged, IData
+    public class DialogData : Data, INotifyPropertyChanged
     {
         #region Members
-
-        [ProtoMember(1)]
-        public string Id { get; protected set; }
-
         private string _name;
 
         [ProtoMember(2)]
@@ -100,9 +154,9 @@ namespace Mediator
         /// Data can be recieved only with using GetById() or with RecieveData()
         /// </summary>
         [ProtoMember(5, IsRequired = false)]
-        public string Data { get; set; }
-        //TODO: RecieveData() & SaveData()
+        public byte[] Data { get; set; }
 
+        public new bool IsFullDataRecieved => Data != null;
         #endregion
 
         #region notify
@@ -118,13 +172,9 @@ namespace Mediator
     }
 
     [ProtoContract]
-    public class CharactersData : INotifyPropertyChanged, IData
+    public class CharacterData : Data, INotifyPropertyChanged
     {
         #region Members
-
-        [ProtoMember(1)]
-        public string Id { get; protected set; }
-
         private string _nameId;
         /// <summary>
         /// ID of TextData from Texts DB. You must get it by yourself. A value of the field can be changed.
@@ -177,14 +227,15 @@ namespace Mediator
         }
 
         [ProtoMember(6, IsRequired = false)]
-        public string Sets { get; set; }
+        public byte[] Sets { get; set; }
 
         [ProtoMember(7, IsRequired = false)]
-        public string Behavior { get; set; }
+        public byte[] Behavior { get; set; }
 
         [ProtoMember(8, IsRequired = false)]
-        public string Knowledge { get; set; }
+        public byte[] Knowledge { get; set; }
 
+        public new bool IsFullDataRecieved => Behavior != null;
         #endregion
 
         #region notify
