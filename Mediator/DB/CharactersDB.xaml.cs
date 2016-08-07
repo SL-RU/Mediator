@@ -20,16 +20,16 @@ namespace Mediator.DB
     /// <summary>
     /// Логика взаимодействия для TextsDB.xaml
     /// </summary>
-    public partial class TextsDB : UserControl, IDbViewer<TextData>
+    public partial class CharactersDB : UserControl, IDbViewer<CharacterData>
     {
         Core _core;
-        Db<TextData> _db;
+        Db<CharacterData> _db;
         MainWindow _mainWindow;
-        TextEditor _textEditor;
+        CharacterEditor _textEditor;
 
         public DbType DbType => DbType.Texts;
 
-        public TextsDB()
+        public CharactersDB()
         {
             InitializeComponent();
 
@@ -37,14 +37,14 @@ namespace Mediator.DB
 
         public UIElement GetEditor()
         {
-            if (_textEditor == null)
-                _textEditor = new TextEditor();
+            if(_textEditor == null)
+                _textEditor = new CharacterEditor();
             return _textEditor;
         }
 
         public void Clear()
         {
-
+            
         }
 
         private async void button_Click(object sender, RoutedEventArgs e)
@@ -57,7 +57,7 @@ namespace Mediator.DB
         {
             _mainWindow = (MainWindow)DataContext;
             _core = _mainWindow.Core;
-            _db = (Db<TextData>)_core.getDb(DbType.Texts);
+            _db = (Db<CharacterData>)_core.getDb(DbType.Texts);
             _db.ConnectViewer(this);
 
             dataGrid.ItemsSource = _db.Cache;
@@ -67,38 +67,8 @@ namespace Mediator.DB
         {
             if (dataGrid.SelectedItem != null)
             {
-                await _db.Edit(((TextData)dataGrid.SelectedItem).Id);
+                await _db.Edit(((CharacterData)dataGrid.SelectedItem).Id);
             }
         }
     }
-
-    //[ValueConversion(typeof(string), typeof(string))]
-    //public class TextDataIdToStringConverter : IValueConverter
-    //{
-    //    public object Convert(object value, Type targetType, object parameter,
-    //        System.Globalization.CultureInfo culture)
-    //    {
-    //        // Возвращаем строку в формате 123.456.789 руб.
-    //        //return ;
-    //    }
-
-    //    public object ConvertBack(object value, Type targetType, object parameter,
-    //        System.Globalization.CultureInfo culture)
-    //    {
-    //        double result;
-    //        if (Double.TryParse(value.ToString(), System.Globalization.NumberStyles.Any,
-    //                     culture, out result))
-    //        {
-    //            return result;
-    //        }
-    //        else if (Double.TryParse(value.ToString().Replace(" руб.", ""), System.Globalization.NumberStyles.Any,
-    //                     culture, out result))
-    //        {
-    //            return result;
-    //        }
-    //        return value;
-    //    }
-    //}
-
-
 }

@@ -10,109 +10,244 @@ using ProtoBuf;
 
 namespace Mediator
 {
-    [ProtoContract]
-    public class DataVersionInfo
-    {
-        [ProtoMember(1)]
-        public string Version = "";
-
-        [ProtoMember(2)]
-        public string LastEditBy = "";
-
-        [ProtoMember(3)]
-        public string LastEditTime = "";
-    }
-
     public interface IData
     {
         //Weeell, let client be creating new data.
-        DataVersionInfo Version { get; }
+        string Locked { get; }
+        string Version { get; }
+        string EditBy { get; }
+        string EditTime { get; }
+
         string Id { get; set; }
         bool IsFullDataRecieved { get; }
     }
 
-    [ProtoContract]
-    public class Data : IData
+    public class Data : IData, INotifyPropertyChanged
     {
-        private byte[] _serializedVersion;
-        private DataVersionInfo _dataVersion;
-        [ProtoMember(1)]
-        public byte[] SerializedVersion
-        {
-            get { return _serializedVersion; }
-            set
-            {
-                _serializedVersion = value;
-                if (_serializedVersion != null)
-                {
-                    using (var m = new MemoryStream(_serializedVersion))
-                    {
-                        _dataVersion = (DataVersionInfo)Serializer.Deserialize(typeof(DataVersionInfo), m);
-                    }
-                }
-                else
-                {
-                    _dataVersion = null;
-                }
-            }
-        }
-        public DataVersionInfo Version
-        {
-            get
-            {
-                if (_dataVersion != null)
-                    return _dataVersion;
-                if (SerializedVersion != null)
-                {
-                    using (var m = new MemoryStream(SerializedVersion))
-                    {
-                        _dataVersion = (DataVersionInfo)Serializer.Deserialize(typeof(DataVersionInfo), m);
-                    }
-                    return _dataVersion;
-                }
-                return null;
-            }
-        }
 
         public string Id { get; set; }
-        public bool IsFullDataRecieved => true;
+        public virtual bool IsFullDataRecieved => true;
+
+        public virtual string Locked { get; set; }
+        public virtual string Version { get; set; }
+        public virtual string EditBy { get; set; }
+        public virtual string EditTime { get; set; }
+
+        #region notify
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
     }
 
     [ProtoContract]
-    public class ScriptData : Data
+    public class ScriptData : Data, INotifyPropertyChanged
     {
+        #region kostyl' because of protobuf
+
+        private string _locked;
+
+        [ProtoMember(1)]
+        public override string Locked
+        {
+            get { return _locked; }
+            set
+            {
+                _locked = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _version;
+
         [ProtoMember(2)]
-        public string Type { get; set; }
+        public override string Version
+        {
+            get { return _version; }
+            set
+            {
+                _version = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editBy;
 
         [ProtoMember(3)]
+        public override string EditBy
+        {
+            get { return _editBy; }
+            set
+            {
+                _editBy = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editTime;
+
+        [ProtoMember(4)]
+        public override string EditTime
+        {
+            get { return _editTime; }
+            set
+            {
+                _editTime = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
+
+        [ProtoMember(5)]
+        public string Type { get; set; }
+
+        [ProtoMember(6)]
         public byte[] Data { get; set; }
     }
 
     [ProtoContract]
     public class TextData : Data, INotifyPropertyChanged
     {
-        private string _text;
+        #region kostyl' because of protobuf
+
+        private string _locked;
+
+        [ProtoMember(1)]
+        public override string Locked
+        {
+            get { return _locked; }
+            set
+            {
+                _locked = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _version;
+
         [ProtoMember(2)]
+        public override string Version
+        {
+            get { return _version; }
+            set
+            {
+                _version = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editBy;
+
+        [ProtoMember(3)]
+        public override string EditBy
+        {
+            get { return _editBy; }
+            set
+            {
+                _editBy = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editTime;
+
+        [ProtoMember(4)]
+        public override string EditTime
+        {
+            get { return _editTime; }
+            set
+            {
+                _editTime = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
+
+        private string _text;
+
+        [ProtoMember(5)]
         public string Text
         {
             get { return _text; }
-            set { _text = value; OnPropertyChanged(); }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            set
+            {
+                _text = value;
+                OnPropertyChanged();
+            }
         }
     }
 
     [ProtoContract]
     public class DialogData : Data, INotifyPropertyChanged
     {
-        #region Members
-        private string _name;
+        #region kostyl' because of protobuf
+
+        private string _locked;
+
+        [ProtoMember(1)]
+        public override string Locked
+        {
+            get { return _locked; }
+            set
+            {
+                _locked = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _version;
 
         [ProtoMember(2)]
+        public override string Version
+        {
+            get { return _version; }
+            set
+            {
+                _version = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editBy;
+
+        [ProtoMember(3)]
+        public override string EditBy
+        {
+            get { return _editBy; }
+            set
+            {
+                _editBy = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editTime;
+
+        [ProtoMember(4)]
+        public override string EditTime
+        {
+            get { return _editTime; }
+            set
+            {
+                _editTime = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
+
+        #region Members
+
+        private string _name;
+
+        [ProtoMember(5)]
         public string Name
         {
             get { return _name; }
@@ -125,7 +260,7 @@ namespace Mediator
 
         private string _tags;
 
-        [ProtoMember(3)]
+        [ProtoMember(6)]
         public string Tags
         {
             get { return _tags; }
@@ -138,7 +273,7 @@ namespace Mediator
 
         private string _description;
 
-        [ProtoMember(4)]
+        [ProtoMember(7)]
         public string Description
         {
             get { return _description; }
@@ -153,20 +288,10 @@ namespace Mediator
         /// <summary>
         /// Data can be recieved only with using GetById() or with RecieveData()
         /// </summary>
-        [ProtoMember(5, IsRequired = false)]
+        [ProtoMember(8, IsRequired = false)]
         public byte[] Data { get; set; }
 
         public new bool IsFullDataRecieved => Data != null;
-        #endregion
-
-        #region notify
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         #endregion
     }
@@ -174,12 +299,70 @@ namespace Mediator
     [ProtoContract]
     public class CharacterData : Data, INotifyPropertyChanged
     {
+        #region kostyl' because of protobuf
+
+        private string _locked;
+
+        [ProtoMember(1)]
+        public override string Locked
+        {
+            get { return _locked; }
+            set
+            {
+                _locked = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _version;
+
+        [ProtoMember(2)]
+        public override string Version
+        {
+            get { return _version; }
+            set
+            {
+                _version = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editBy;
+
+        [ProtoMember(3)]
+        public override string EditBy
+        {
+            get { return _editBy; }
+            set
+            {
+                _editBy = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _editTime;
+
+        [ProtoMember(4)]
+        public override string EditTime
+        {
+            get { return _editTime; }
+            set
+            {
+                _editTime = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
+
         #region Members
+
         private string _nameId;
+
         /// <summary>
         /// ID of TextData from Texts DB. You must get it by yourself. A value of the field can be changed.
         /// </summary>
-        [ProtoMember(2)]
+        [ProtoMember(5)]
         public string NameId
         {
             get { return _nameId; }
@@ -189,9 +372,11 @@ namespace Mediator
                 OnPropertyChanged();
             }
         }
+
         //TODO: Я сомневаюсь насчёт OnPropertyChanged в некоторых местах - решим потом.
         private string _tags;
-        [ProtoMember(3)]
+
+        [ProtoMember(6)]
         public string Tags
         {
             get { return _tags; }
@@ -203,7 +388,8 @@ namespace Mediator
         }
 
         private string _groups;
-        [ProtoMember(4)]
+
+        [ProtoMember(7)]
         public string Groups
         {
             get { return _groups; }
@@ -215,7 +401,8 @@ namespace Mediator
         }
 
         private string _description;
-        [ProtoMember(5)]
+
+        [ProtoMember(8)]
         public string Description
         {
             get { return _description; }
@@ -226,26 +413,16 @@ namespace Mediator
             }
         }
 
-        [ProtoMember(6, IsRequired = false)]
+        [ProtoMember(9, IsRequired = false)]
         public byte[] Sets { get; set; }
 
-        [ProtoMember(7, IsRequired = false)]
+        [ProtoMember(10, IsRequired = false)]
         public byte[] Behavior { get; set; }
 
-        [ProtoMember(8, IsRequired = false)]
+        [ProtoMember(11, IsRequired = false)]
         public byte[] Knowledge { get; set; }
 
         public new bool IsFullDataRecieved => Behavior != null;
-        #endregion
-
-        #region notify
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         #endregion
     }

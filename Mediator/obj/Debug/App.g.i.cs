@@ -9,6 +9,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using Infralution.Localization.Wpf;
 using Mediator;
 using System;
 using System.Diagnostics;

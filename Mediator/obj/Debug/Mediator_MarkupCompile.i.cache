@@ -10,11 +10,11 @@ none
 false
 DEBUG;TRACE
 D:\prj\Mediator\Mediator\Mediator\App.xaml
-5547717722
-
-16583140283
-221455741920
-DB\TextsDB.xaml;Editors\TextEditor.xaml;MainWindow.xaml;SQLiteDB\SqLiteDbConnector.xaml;StartWindow.xaml;
+92130391075
+11898590854
+24-1360650375
+23-381414182
+DB\CharactersDB.xaml;DB\TextsDB.xaml;Editors\CharacterEditor.xaml;Editors\TextEditor.xaml;elements\TextDataElement.xaml;elements\VersionElement.xaml;MainWindow.xaml;SQLiteDB\SqLiteDbConnector.xaml;StartWindow.xaml;
 
 True
 

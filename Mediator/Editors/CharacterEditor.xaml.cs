@@ -18,57 +18,50 @@ namespace Mediator.Editors
     /// <summary>
     /// Логика взаимодействия для TextEditor.xaml
     /// </summary>
-    public partial class TextEditor : UserControl, IDbEditor<TextData>
+    public partial class CharacterEditor : UserControl, IDbEditor<CharacterData>
     {
         MainWindow mainWindow;
         Core Core;
-        Db<TextData> db;
-        TextData txt;
+        Db<CharacterData> db;
+        CharacterData data;
 
         public DbType DbType => DbType.Texts;
-        public string CurrentlyEditingDataId => txt.Id;
+        public string CurrentlyEditingDataId => data.Id;
 
-        public TextEditor()
+        public CharacterEditor()
         {
             InitializeComponent();
 
         }
 
-        public void Edit(TextData td)
+        public void Edit(CharacterData td)
         {
-            if(txt != null)
-                CloseEdit();
-
-            txt = td;
+            data = td;
             grid.DataContext = td;
             version.grid.DataContext = td;
         }
 
         private async void save_Click(object sender, RoutedEventArgs e)
         {
-            await db.Set(txt);
+            await db.Set(data);
         }
 
         private async void revert_Click(object sender, RoutedEventArgs e)
         {
-            var t = await db.ReceiveData(txt.Id, false);
+            var t = await db.ReceiveData(data.Id, false);
             db.Update(t);
         }
 
-        public async void CloseEdit()
+        public void CloseEdit()
         {
-            if (txt != null)
-                await db.UnLock(txt);
-            txt = null;
-            grid.DataContext = null;
-            version.grid.DataContext = null;
+            
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             mainWindow = (MainWindow)DataContext;
             Core = mainWindow.Core;
-            db = (Db<TextData>)Core.getDb(DbType.Texts);
+            db = (Db<CharacterData>)Core.getDb(DbType.Texts);
             db.ConnectEditor(this);
 
             

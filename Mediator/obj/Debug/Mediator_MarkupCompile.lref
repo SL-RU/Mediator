@@ -1,8 +1,12 @@
 ﻿
 FD:\prj\Mediator\Mediator\Mediator\App.xaml;;
 FD:\prj\Mediator\Mediator\Mediator\DB\TextsDB.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\Editors\TextEditor.xaml;;
 FD:\prj\Mediator\Mediator\Mediator\MainWindow.xaml;;
 FD:\prj\Mediator\Mediator\Mediator\SQLiteDB\SqLiteDbConnector.xaml;;
 FD:\prj\Mediator\Mediator\Mediator\StartWindow.xaml;;
-FD:\prj\Mediator\Mediator\Mediator\Editors\TextEditor.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\elements\TextDataElement.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\elements\VersionElement.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\DB\CharactersDB.xaml;;
+FD:\prj\Mediator\Mediator\Mediator\Editors\CharacterEditor.xaml;;
 

@@ -1,4 +1,4 @@
-﻿<Window x:Class="Mediator.MainWindow"
+﻿<Window x:Class="Mediator.MainWindow" ResxExtension.DefaultResxName="Mediator.locale.Main" Language="{UICulture}"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -18,28 +18,13 @@
                 <ColumnDefinition Width="250"/>
             </Grid.ColumnDefinitions>
             <TabControl x:Name="DbViewersTabs" TabStripPlacement="Bottom">
-                <TabItem Header="Projects" Background="{DynamicResource ProjectsDbTabColor}" BorderBrush="{DynamicResource ProjectsDbTabColor}">
-                    <Grid Background="#FFE5E5E5"/>
-                </TabItem>
-                <TabItem Header="Characters" Background="{DynamicResource CharactersDbTabColor}" BorderBrush="{DynamicResource CharactersDbTabColor}">
-                </TabItem>
-                <TabItem Header="Text" Background="{DynamicResource TextsDbTabColor}" BorderBrush="{DynamicResource TextsDbTabColor}">
-                    <db:TextsDB/>
-                </TabItem>
+                
             </TabControl>
             <GridSplitter HorizontalAlignment="Left" Width="5" Grid.Column="1"/>
             <Grid Margin="0" Grid.Column="2"/>
             <GridSplitter HorizontalAlignment="Stretch" Width="5" Grid.Column="3"/>
-            <TabControl Grid.Column="4" TabStripPlacement="Bottom">
-                <TabItem Header="Project" Background="{DynamicResource ProjectsDbTabColor}" BorderBrush="{DynamicResource ProjectsDbTabColor}">
-                    <Grid Background="#FFE5E5E5"/>
-                </TabItem>
-                <TabItem Header="Character" BorderBrush="{DynamicResource CharactersDbTabColor}" Background="{DynamicResource CharactersDbTabColor}">
-                    <Grid Background="#FFE5E5E5"/>
-                </TabItem>
-                <TabItem Header="Character" BorderBrush="{DynamicResource TextsDbTabColor}" Background="{DynamicResource TextsDbTabColor}">
-                    <ed:TextEditor></ed:TextEditor>
-                </TabItem>
+            <TabControl x:Name="DbEditorsTabs" Grid.Column="4" TabStripPlacement="Bottom">
+                
             </TabControl>
         </Grid>
     </Grid>

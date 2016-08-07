@@ -7,17 +7,42 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
+using Microsoft.SqlServer.Server;
+using ProtoBuf;
 
 namespace Mediator.SQLiteDB
 {
+
+    [ProtoContract]
+    public class SqliteDbInterfaceVersionData : Extensible
+    {
+        [ProtoMember(1)]
+        public string Locked { get; set; }
+
+        [ProtoMember(2)]
+        public string Version { get; set; }
+
+        [ProtoMember(3)]
+        public string EditBy { get; set; }
+
+        [ProtoMember(4)]
+        public string EditTime { get; set; }
+    }
+
     public class SqliteDbInterface : IDbInterface
     {
         public string CPath { get; private set; }
+
+        public bool IsLocalDb => true;
 
         public string ProjectFileName => Path.Combine(CPath, "mediator.prj");
         public string DbFileName => Path.Combine(CPath, "current.db");
         public string OldDbDirName => Path.Combine(CPath, "old");
         public string TamplatesDirName => Path.Combine(CPath, "tamplates");
+
+        public string CurrentVersion => "cur";
+
+        public string CurrentAuthor => "me";
 
         private SQLiteFactory factory;
         private SQLiteConnection connection;
@@ -89,6 +114,7 @@ namespace Mediator.SQLiteDB
         {
             using (SQLiteCommand command = new SQLiteCommand(connection))
             {
+                //TODO: Versioning
                 command.CommandText = @"SELECT data FROM " + dbName + " WHERE id='" + id + "';";
                 command.Prepare();
                 command.Parameters.AddWithValue("@db", dbName);
@@ -108,7 +134,22 @@ namespace Mediator.SQLiteDB
 
         public async Task Set(string dbName, string id, byte[] data)
         {
-            var b = Convert.ToBase64String(data);
+            SqliteDbInterfaceVersionData d;
+            using (var m = new MemoryStream(data))
+            {
+                d = (SqliteDbInterfaceVersionData) Serializer.Deserialize(typeof (SqliteDbInterfaceVersionData), m);
+                d.EditBy = CurrentAuthor;
+                d.Version = CurrentVersion;
+                d.EditTime = DateTime.Now.ToString();
+                if (d.Locked == null)
+                    d.Locked = "";
+            }
+            using (var m = new MemoryStream())
+            {
+                Serializer.Serialize(m, d);
+                data = m.ToArray();
+            }
+            
             using (SQLiteCommand command = new SQLiteCommand(connection))
             {
                 command.CommandText = "SELECT count(*) FROM " + dbName + " WHERE id=@id";
@@ -121,7 +162,7 @@ namespace Mediator.SQLiteDB
                     command.Prepare();
                     command.Parameters.AddWithValue("@db", dbName);
                     command.Parameters.AddWithValue("@id", id);
-                    command.Parameters.AddWithValue("@data", b);
+                    command.Parameters.AddWithValue("@data", data);
                     command.ExecuteNonQuery();
                 }
                 else
@@ -139,6 +180,31 @@ namespace Mediator.SQLiteDB
         public async Task<string> GetNewId()
         {
             return Guid.NewGuid().ToString();
+        }
+
+        public async Task<long> GetCount(string dbName)
+        {
+            using (SQLiteCommand command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "SELECT count(*) FROM " + dbName + ";";
+                return Convert.ToInt32(command.ExecuteScalar());
+            }
+        }
+
+        public async Task<List<string>> GetAllIds(string dbName)
+        {
+            List<string> ids = new List<string>();
+            using (SQLiteCommand command = new SQLiteCommand(connection))
+            {
+                command.CommandText = @"SELECT id FROM " + dbName + ";";
+                SQLiteDataReader reader = command.ExecuteReader();
+                foreach (DbDataRecord r in reader)
+                {
+                    ids.Add((string) r["id"]);
+                }
+            }
+            return ids;
+
         }
     }
 }

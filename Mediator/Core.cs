@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.IO;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Forms;
 
 namespace Mediator
@@ -28,6 +29,11 @@ namespace Mediator
 
     public interface IDbInterface
     {
+        bool IsLocalDb { get; }
+
+        string CurrentVersion { get; }
+        string CurrentAuthor { get; }
+
         Task Connect();
         Task Close();
 
@@ -49,7 +55,14 @@ namespace Mediator
         /// <param name="data">Serialized data</param>
         Task Set(string dbName, string id, byte[] data);
 
+        /// <summary>
+        /// Recieve ID for a new element 
+        /// </summary>
+        /// <returns></returns>
         Task<string> GetNewId();
+
+        Task<long> GetCount(string dbName);
+        Task<List<string>> GetAllIds(string dbName);
     }
 
     public class Core
@@ -57,39 +70,56 @@ namespace Mediator
         public IDbInterface Db { get; private set; }
 
         //public Dictionary<DbType, IData> 
-        
-        private Dictionary<DbType, IDb<IData>> Dbs; 
+
+        private Dictionary<DbType, IDb<IData>> Dbs;
 
         public Core(IDbInterface db)
         {
-            
+
             Db = db;
 
             Dbs = new Dictionary<DbType, IDb<IData>>();
 
             //TODO: ???
             Dbs.Add(DbType.Characters, new Db<CharacterData>(this, DbType.Characters));
-            Dbs.Add(DbType.Scripts,    new Db<ScriptData>(this, DbType.Scripts   ));
-            Dbs.Add(DbType.Dialogs,    new Db<DialogData>(this, DbType.Dialogs));
-            Dbs.Add(DbType.Quest,      new Db<CharacterData>(this, DbType.Quest     ));
-            Dbs.Add(DbType.Texts,      new Db<TextData>(this, DbType.Texts     ));
+            Dbs.Add(DbType.Scripts, new Db<ScriptData>(this, DbType.Scripts));
+            Dbs.Add(DbType.Dialogs, new Db<DialogData>(this, DbType.Dialogs));
+            Dbs.Add(DbType.Quest, new Db<CharacterData>(this, DbType.Quest));
+            Dbs.Add(DbType.Texts, new Db<TextData>(this, DbType.Texts));
         }
 
         public IDb<IData> getDb(DbType type)
         {
             return (IDb<IData>)Dbs[type];
         }
+
+        public async void GetCache()
+        {
+            var t = await Db.GetAllIds(DbType.Texts.ToString());
+            foreach (var s in t)
+            {
+                await ((Db<TextData>) getDb(DbType.Texts)).Get(s);
+            }
+        }
     }
 
-    public interface IDbEditor<T> where T: IData
+    public interface IDbEditor<in T> where T : IData
     {
-        T CurrentlyEditingData { get; }
+        DbType DbType { get; }
+        string CurrentlyEditingDataId { get; }
         void Edit(T edit);
         void CloseEdit();
     }
 
     public interface IDbViewer<out T> where T : IData
     {
+        DbType DbType { get; }
+        /// <summary>
+        /// Creates(if not created yet) IDbEditor
+        /// </summary>
+        /// <returns></returns>
+        UIElement GetEditor(); //DbViewer is more important. It's controlling all Data and let it create Editor.
+
         void Clear();
     }
 
@@ -109,8 +139,8 @@ namespace Mediator
         public string DbName { get; protected set; }
         public DbType DbType { get; protected set; }
 
-        public IDbViewer<T> Viewer { get; protected set; }
-        public IDbEditor<T> Editor { get; protected set; }
+        protected IDbViewer<T> Viewer { get; set; }
+        protected IDbEditor<T> Editor { get; set; }
 
         //TODO: Add null check in Db<T>
 
@@ -146,7 +176,7 @@ namespace Mediator
                 Cache.Remove(i);
             }
         }
-        #region Connect
+        #region GUI
         /// <summary>
         /// Connect visual editor to Db
         /// </summary>
@@ -164,10 +194,22 @@ namespace Mediator
         {
             Viewer = viewer;
         }
+        /// <summary>
+        /// Open data in editor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task Edit(string id)
+        {
+            T d = await Get(id);
+            await Lock(d); //Lock data
+            if(Editor != default(IDbEditor<T>))
+                Editor.Edit(d);
+        }
         #endregion
 
         #region Serialization
-        
+
 
         public T Deserialize(byte[] s)
         {
@@ -225,7 +267,7 @@ namespace Mediator
         {
             if (CacheDict.ContainsKey(id))
             {
-                if(CacheDict[id].IsFullDataRecieved) //if already full data already recieved
+                if (CacheDict[id].IsFullDataRecieved) //if already full data already recieved
                     return CacheDict[id];
                 else
                 {
@@ -251,15 +293,28 @@ namespace Mediator
         {
             //dat.Update(null);
             await Core.Db.Set(DbName, dat.Id, Serialize(dat));
+            if (Cache.Contains(dat))
+            {
+                T d = await ReceiveData(dat.Id, false);
+                Update(d);
+            }
         }
 
+        /// <summary>
+        /// Create new data and get it.
+        /// </summary>
+        /// <returns>new data</returns>
         public async Task<T> Create()
         {
-            T t = new T();
-            t.Id = await Core.Db.GetNewId();
-            await Set(t);
-            t = await Get(t.Id);
-            return t;
+            if (Core.Db.IsLocalDb) //ONLY FOR LOCAL DB!!! KOSTYL'
+            {
+                T t = new T(); //Create new data
+                t.Id = await Core.Db.GetNewId(); //recieve new ID
+                await Set(t); //Register new data on server
+                t = await Get(t.Id); //recieve that data with version and etc info
+                return t;
+            }
+            return default(T);
         }
 
         /// <summary>
@@ -268,9 +323,9 @@ namespace Mediator
         /// <param name="data">"data" object</param>
         public void Update(T data)
         {
-            if(data.GetType() != typeof(T))
+            if (data.GetType() != typeof(T))
                 throw new Exception("Different types - couldn't update");
-            if(data == null)
+            if (data == null)
                 throw new NullReferenceException();
             var d = CacheGet(data.Id);
             if (d == null) // It isn't required - only just for the KOSTILY case 
@@ -297,6 +352,43 @@ namespace Mediator
             }
 
         }
+
+        /// <summary>
+        /// Lock data before edit
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async Task Lock(T data)
+        {
+            if (Core.Db.IsLocalDb)
+                data.Locked = Core.Db.CurrentAuthor;
+        }
+
+        /// <summary>
+        /// Unock data after edit
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async Task UnLock(T data)
+        {
+            if (Core.Db.IsLocalDb)
+                data.Locked = "";
+        }
+
+        /// <summary>
+        /// Check before edit
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> CanEdit(T data)
+        {
+            if (Core.Db.IsLocalDb)
+                return data.Locked == Core.Db.CurrentAuthor;
+            else
+            {
+                return false;
+            }
+        }
+
     }
 
 }
